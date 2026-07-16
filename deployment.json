@@ -1,0 +1,9 @@
+{
+  "brand": "Infinity",
+  "hosts": {
+    "chat": "chat.crmprosolutions.com",
+    "matrix": "matrix.crmprosolutions.com",
+    "account": "account.crmprosolutions.com",
+    "admin": "admin.crmprosolutions.com"
+  }
+}

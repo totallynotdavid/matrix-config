@@ -1,0 +1,15 @@
+{
+  "administrator": {
+    "username": "admin",
+    "display_name": "Chat administrator"
+  },
+  "space": {
+    "key": "company"
+  },
+  "rooms": [
+    {"key": "general", "name": "General"},
+    {"key": "operations", "name": "Operaciones"},
+    {"key": "sales", "name": "Ventas"},
+    {"key": "management", "name": "Gerencia"}
+  ]
+}
