@@ -1,0 +1,109 @@
+matrix-stack:
+  serverName: $matrix_host
+
+  ingress:
+    tlsEnabled: false
+
+  elementAdmin:
+    ingress:
+      host: $admin_host
+
+  elementWeb:
+    ingress:
+      host: $chat_host
+    additional:
+      user-config.json: |
+        {
+          "brand": $brand_json,
+          "permalink_prefix": "$chat_url",
+          "custom_translations_url": "$chat_url/custom-translations.json",
+          "disable_custom_urls": true,
+          "branding": {
+            "auth_header_logo_url": "$chat_url/logo.webp",
+            "logo_link_url": "$chat_url"
+          },
+          "setting_defaults": {
+            "language": "es"
+          },
+          "sso_redirect_options": {
+            "immediate": true
+          }
+        }
+    extraVolumes:
+      - name: element-assets
+        configMap:
+          name: element-assets
+          items:
+            - key: favicon.ico
+              path: favicon.ico
+            - key: logo.webp
+              path: logo.webp
+            - key: custom-translations.json
+              path: custom-translations.json
+    extraVolumeMounts:
+      - name: element-assets
+        mountPath: /app/favicon.ico
+        subPath: favicon.ico
+        readOnly: true
+      - name: element-assets
+        mountPath: /app/logo.webp
+        subPath: logo.webp
+        readOnly: true
+      - name: element-assets
+        mountPath: /app/custom-translations.json
+        subPath: custom-translations.json
+        readOnly: true
+
+  matrixAuthenticationService:
+    ingress:
+      host: $account_host
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: ess-force-spanish@kubernetescrd
+    extraVolumes:
+      - name: mas-translations
+        configMap:
+          name: mas-translations
+          items:
+            - key: es.json
+              path: es.json
+    extraVolumeMounts:
+      - name: mas-translations
+        mountPath: /usr/local/share/mas-cli/translations/es.json
+        subPath: es.json
+        readOnly: true
+
+  synapse:
+    ingress:
+      host: $matrix_host
+    checkConfigHook:
+      enabled: false
+    additional:
+      encryption-default.yaml:
+        config: |
+          encryption_enabled_by_default_for_room_type: off
+      room-policy.yaml:
+        config: |
+          modules:
+            - module: room_creation_policy.ApprovedRoomsOnly
+              config:
+                allowed_users:
+                  - "@$administrator_username:$matrix_host"
+    extraEnv:
+      - name: PYTHONPATH
+        value: /modules
+    extraVolumes:
+      - name: synapse-policy
+        mountContext: both
+        configMap:
+          name: synapse-policy
+          items:
+            - key: room_creation_policy.py
+              path: room_creation_policy.py
+    extraVolumeMounts:
+      - name: synapse-policy
+        mountContext: both
+        mountPath: /modules
+        readOnly: true
+
+  matrixRTC:
+    enabled: false

@@ -1,0 +1,299 @@
+{
+  "common|people": {
+    "es": "Personas"
+  },
+  "room_list|filters|people": {
+    "es": "Personas"
+  },
+  "common|rooms": {
+    "es": "Salas"
+  },
+  "room_list|filters|rooms": {
+    "es": "Salas"
+  },
+  "room_list|filters|unread": {
+    "es": "Sin leer"
+  },
+  "room_list|filters|mentions": {
+    "es": "Menciones"
+  },
+  "room_list|space_menu|home": {
+    "es": "Inicio del espacio"
+  },
+  "space|context_menu|home": {
+    "es": "Inicio del espacio"
+  },
+  "room_list|room_options": {
+    "es": "Opciones de la sala"
+  },
+  "room_list|sort": {
+    "es": "Ordenar"
+  },
+  "room_list|sort_type|activity": {
+    "es": "Actividad reciente"
+  },
+  "common|appearance": {
+    "es": "Apariencia"
+  },
+  "room_list|appearance": {
+    "es": "Apariencia"
+  },
+  "room_list|show_message_previews": {
+    "es": "Mostrar vistas previas de mensajes"
+  },
+  "settings|show_message_previews": {
+    "es": "Mostrar vistas previas de mensajes"
+  },
+  "settings|account|title": {
+    "es": "Cuenta"
+  },
+  "settings|general|profile_subtitle": {
+    "es": "Así apareces ante otras personas en la aplicación."
+  },
+  "settings|general|display_name": {
+    "es": "Nombre visible"
+  },
+  "common|username": {
+    "es": "Nombre de usuario"
+  },
+  "settings|general|username": {
+    "es": "Nombre de usuario"
+  },
+  "member_list|count|one": {
+    "es": "%(count)s miembro"
+  },
+  "member_list|count|other": {
+    "es": "%(count)s miembros"
+  },
+  "encryption|set_up_recovery": {
+    "es": "Haz una copia de seguridad de tus chats"
+  },
+  "encryption|set_up_recovery_toast_description": {
+    "es": "Tus chats se guardan automáticamente con cifrado de extremo a extremo. Para restaurar esta copia y conservar tu identidad digital si pierdes acceso a todos tus dispositivos, necesitarás tu clave de recuperación."
+  },
+  "encryption|turn_on_key_storage": {
+    "es": "Activar el almacenamiento de claves"
+  },
+  "encryption|turn_on_key_storage_description": {
+    "es": "Te permitirá ver el historial de tus chats en cualquier dispositivo nuevo y es necesario para la copia de seguridad de chats y la identidad digital."
+  },
+  "room_list|empty|no_chats": {
+    "es": "Aún no hay chats"
+  },
+  "room_list|empty|no_chats_description": {
+    "es": "Empieza enviando un mensaje a alguien o creando una sala"
+  },
+  "room_list|empty|no_chats_description_no_room_rights": {
+    "es": "Empieza enviando un mensaje a alguien"
+  },
+  "settings|sidebar|spaces_explainer": {
+    "es": "Los espacios permiten agrupar salas y personas. Además de los espacios a los que perteneces, puedes usar algunos ya creados."
+  },
+  "settings|voip|noise_suppression_description": {
+    "es": "Reduce el ruido de fondo de la entrada de tu micrófono durante las llamadas. Este ajuste también se aplica a Element Call."
+  },
+  "settings|voip|echo_cancellation_description": {
+    "es": "Elimina el eco de la entrada de tu micrófono durante las llamadas. Este ajuste también se aplica a Element Call."
+  },
+  "settings|discovery|title": {
+    "es": "Cómo encontrarte"
+  },
+  "settings|encryption|key_storage|title": {
+    "es": "Almacenamiento de claves"
+  },
+  "settings|encryption|key_storage|allow_key_storage": {
+    "es": "Permitir el almacenamiento de claves"
+  },
+  "settings|encryption|key_storage|description": {
+    "es": "Te permitirá ver el historial de tus chats en cualquier dispositivo nuevo y es necesario para la copia de seguridad de chats y la identidad digital. <a>Más información</a>"
+  },
+  "settings|encryption|recovery|description": {
+    "es": "Tus chats se guardan automáticamente con cifrado de extremo a extremo. Para restaurar esta copia y conservar tu identidad digital si pierdes acceso a todos tus dispositivos, necesitarás tu clave de recuperación."
+  },
+  "release_announcement|room_list_section_title": {
+    "es": "Presentamos las secciones"
+  },
+  "release_announcement|room_list_section_description": {
+    "es": "Agrupa tus chats en secciones para mantener las conversaciones organizadas y fáciles de explorar."
+  },
+  "settings|encryption|dialog_title": {
+    "es": "<strong>Ajustes:</strong> Cifrado"
+  },
+  "settings|encryption|title": {
+    "es": "Cifrado"
+  },
+  "common|advanced": {
+    "es": "Opciones avanzadas"
+  },
+  "settings|encryption|advanced|title": {
+    "es": "Opciones avanzadas"
+  },
+  "settings|encryption|advanced|details_title": {
+    "es": "Detalles del cifrado"
+  },
+  "settings|encryption|advanced|session_id": {
+    "es": "ID de sesión:"
+  },
+  "settings|encryption|advanced|session_key": {
+    "es": "Clave de sesión:"
+  },
+  "settings|encryption|advanced|export_keys": {
+    "es": "Exportar claves"
+  },
+  "settings|encryption|advanced|import_keys": {
+    "es": "Importar claves"
+  },
+  "settings|encryption|advanced|reset_identity": {
+    "es": "Restablecer identidad criptográfica"
+  },
+  "settings|encryption|advanced|other_people_device_title": {
+    "es": "Dispositivos de otras personas"
+  },
+  "settings|encryption|advanced|other_people_device_label": {
+    "es": "En salas cifradas, enviar mensajes solo a usuarios verificados"
+  },
+  "settings|encryption|advanced|other_people_device_description": {
+    "es": "Advertencia: los usuarios que no hayas verificado explícitamente (por ejemplo, usando emojis) no recibirán tus mensajes cifrados. Tampoco los recibirán los dispositivos sin verificar de usuarios verificados. Para aplicar los cambios, reinicia la aplicación."
+  },
+  "settings|encryption|recovery|title": {
+    "es": "Copia de seguridad"
+  },
+  "settings|encryption|recovery|set_up_recovery": {
+    "es": "Obtener clave de recuperación"
+  },
+  "settings|general|application_language": {
+    "es": "Idioma de la aplicación"
+  },
+  "settings|general|application_language_reload_hint": {
+    "es": "La aplicación se recargará al seleccionar otro idioma"
+  },
+  "settings|preferences|user_timezone": {
+    "es": "Establecer zona horaria"
+  },
+  "settings|preferences|default_timezone": {
+    "es": "Predeterminada del navegador (%(timezone)s)"
+  },
+  "settings|preferences|link_previews_heading": {
+    "es": "Vistas previas de enlaces"
+  },
+  "settings|preferences|link_previews_description": {
+    "es": "Muestra información sobre los enlaces debajo de los mensajes"
+  },
+  "common|timeline": {
+    "es": "Línea de tiempo"
+  },
+  "settings|show_typing_notifications": {
+    "es": "Mostrar un indicador cuando otra persona esté escribiendo en la sala"
+  },
+  "settings|show_join_leave": {
+    "es": "Mostrar mensajes de entrada y salida de la sala (seguirás viendo invitaciones, expulsiones y vetos)"
+  },
+  "settings|show_read_receipts": {
+    "es": "Mostrar las confirmaciones de lectura enviadas por otras personas"
+  },
+  "settings|show_displayname_changes": {
+    "es": "Mostrar cambios de nombre visible"
+  },
+  "settings|show_chat_effects": {
+    "es": "Mostrar efectos de chat (animaciones al recibir, por ejemplo, confeti)"
+  },
+  "settings|show_avatar_changes": {
+    "es": "Mostrar cambios de foto de perfil"
+  },
+  "settings|disable_historical_profile": {
+    "es": "Mostrar la foto y el nombre de perfil actuales de las personas en el historial de mensajes"
+  },
+  "settings|jump_to_bottom_on_send": {
+    "es": "Saltar al final de la línea de tiempo al enviar un mensaje"
+  },
+  "settings|media_preview|hide_avatars": {
+    "es": "Ocultar avatares de la sala y de quien invita"
+  },
+  "settings|media_preview|media_preview_label": {
+    "es": "Mostrar contenido multimedia en la línea de tiempo"
+  },
+  "settings|media_preview|media_preview_description": {
+    "es": "El contenido multimedia oculto siempre se puede mostrar tocándolo"
+  },
+  "settings|media_preview|hide_media": {
+    "es": "Ocultar siempre"
+  },
+  "settings|media_preview|show_in_private": {
+    "es": "En salas privadas"
+  },
+  "settings|media_preview|show_media": {
+    "es": "Mostrar siempre"
+  },
+  "settings|invite_controls|default_label": {
+    "es": "Permitir que otras personas te inviten a salas"
+  },
+  "settings|showbold": {
+    "es": "Mostrar toda la actividad en la lista de salas (puntos o número de mensajes sin leer)"
+  },
+  "settings|tac_only_notifications": {
+    "es": "Mostrar notificaciones solo en el centro de actividad de hilos"
+  },
+  "settings|sessions|device_verified_description_current": {
+    "es": "Tu sesión actual está lista para la mensajería segura. <a>Más información</a>"
+  },
+  "labs|notification_settings_beta_title": {
+    "es": "Ajustes de notificaciones"
+  },
+  "labs|notification_settings_beta_caption": {
+    "es": "Te presentamos una forma más sencilla de cambiar tus ajustes de notificaciones. Personaliza la aplicación a tu gusto."
+  },
+  "common|beta": {
+    "es": "Beta"
+  },
+  "settings|notifications|dialog_title": {
+    "es": "<strong>Ajustes:</strong> Notificaciones"
+  },
+  "settings|sessions|title": {
+    "es": "Sesiones"
+  },
+  "settings|sidebar|title": {
+    "es": "Barra lateral"
+  },
+  "settings|voip|title": {
+    "es": "Voz y vídeo"
+  },
+  "settings|security|dialog_title": {
+    "es": "<strong>Ajustes:</strong> Seguridad y privacidad"
+  },
+  "common|labs": {
+    "es": "Experimentos"
+  },
+  "common|help": {
+    "es": "Ayuda"
+  },
+  "common|preferences": {
+    "es": "Opciones"
+  },
+  "settings|keyboard|title": {
+    "es": "Teclado"
+  },
+  "common|moderation_and_safety": {
+    "es": "Moderación y seguridad"
+  },
+  "encryption|verification|confirm_identity_title": {
+    "es": "Confirma tu identidad digital"
+  },
+  "encryption|verification|confirm_identity_description": {
+    "es": "Verifica este dispositivo para configurar la mensajería segura"
+  },
+  "encryption|verification|cant_confirm": {
+    "es": "¿No puedes confirmar?"
+  },
+  "settings|encryption|advanced|breadcrumb_title_cant_confirm": {
+    "es": "Debes restablecer tu identidad digital"
+  },
+  "settings|encryption|advanced|breadcrumb_first_description": {
+    "es": "Se conservarán los datos de tu cuenta, contactos, preferencias y lista de chats"
+  },
+  "settings|encryption|advanced|breadcrumb_second_description": {
+    "es": "Perderás el historial de mensajes que solo esté guardado en el servidor"
+  },
+  "settings|encryption|advanced|breadcrumb_third_description": {
+    "es": "Tendrás que verificar de nuevo todos tus dispositivos y contactos existentes"
+  }
+}

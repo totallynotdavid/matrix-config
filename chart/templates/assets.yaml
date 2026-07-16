@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-assets
+binaryData:
+  favicon.ico: {{ .Files.Get "files/favicon.ico" | b64enc }}
+  logo.webp: {{ .Files.Get "files/logo.webp" | b64enc }}
+data:
+  custom-translations.json: |-
+{{ .Files.Get "files/custom-translations.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mas-translations
+data:
+  es.json: |-
+{{ .Files.Get "files/mas-es.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synapse-policy
+data:
+  room_creation_policy.py: |-
+{{ .Files.Get "files/room_creation_policy.py" | indent 4 }}

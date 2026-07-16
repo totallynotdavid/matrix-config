@@ -1,0 +1,38 @@
+{
+  "action": {
+    "back": "Volver",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "create_account": "Crear cuenta",
+    "sign_in": "Iniciar sesión",
+    "sign_out": "Cerrar sesión",
+    "password": "Contraseña",
+    "username": "Nombre de usuario"
+  },
+  "error": {
+    "invalid_credentials": "Nombre de usuario o contraseña incorrectos",
+    "internal_server_error": "Se produjo un error interno. Inténtalo de nuevo más tarde.",
+    "rate_limit_exceeded": "Has realizado demasiadas solicitudes en poco tiempo. Espera unos minutos e inténtalo de nuevo."
+  },
+  "common": {
+    "password": "Contraseña",
+    "username": "Nombre de usuario"
+  },
+  "mas": {
+    "consent": {
+      "continue_to": "¿Continuar a <span>%(client_name)s</span>?",
+      "this_will_setup": "Esto configurará %(client_name)s (<span>%(client_uri)s</span>) con tu cuenta de <span>%(server_name)s</span>.",
+      "use_another_account": "Usar otra cuenta"
+    },
+    "login": {
+      "description": "Inicia sesión para continuar:",
+      "headline": "Iniciar sesión",
+      "forgot_password": "¿Olvidaste tu contraseña?",
+      "username_or_email": "Nombre de usuario o correo electrónico"
+    },
+    "register": {
+      "register": "Crear una cuenta"
+    },
+    "signed_in_as": "Sesión iniciada como <span class=\"font-semibold\">%(username)s</span>."
+  }
+}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: element-chat
+description: Matrix chat server (ESS)
+type: application
+version: 1.0.0
+dependencies:
+  - name: matrix-stack
+    version: 26.7.0
+    repository: oci://ghcr.io/element-hq/ess-helm
