@@ -27,20 +27,29 @@ run `mas-cli` with `kubectl exec` in the MAS pod.
 
 The Python code uses the standard library only.
 
-| Path                                                              | Responsibility                                                                                                                          |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install`](../install)                                           | Requires root, refuses to start when an installation state file exists, runs `deploy.py install`.                                       |
-| [`element`](../element)                                           | Passes its arguments to `deploy.py`.                                                                                                    |
-| [`deploy.py`](../deploy.py)                                       | The command line: `install`, `verify`, `check`, `users`. Sets `KUBECONFIG` to the k3s config and puts `/usr/local/bin` first on `PATH`. |
-| [`element_chat/config.py`](../element_chat/config.py)             | Loads and validates `deployment.json`, derives the `https://` URLs, loads `organization.json`.                                          |
-| [`element_chat/support.py`](../element_chat/support.py)           | Paths and constants, subprocess and HTTP helpers, polling, atomic JSON writes with mode 0600.                                           |
-| [`element_chat/chart.py`](../element_chat/chart.py)               | Renders `chart/values.yaml.tmpl` into a temporary file and validates the chart with helm.                                               |
-| [`element_chat/installation.py`](../element_chat/installation.py) | The pinned versions, the install phases, and `verify`.                                                                                  |
-| [`element_chat/users.py`](../element_chat/users.py)               | The CSV import and its receipt.                                                                                                         |
-| [`chart/`](../chart)                                              | The Helm chart. See [Chart](#chart).                                                                                                    |
+| Path                                                              | Responsibility                                                                                                                                                             |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`install`](../install)                                           | Runs `deploy.py install` with its arguments.                                                                                                                               |
+| [`element`](../element)                                           | Passes its arguments to `deploy.py`.                                                                                                                                       |
+| [`deploy.py`](../deploy.py)                                       | The command line: `install`, `verify`, `check`, `users`. Requires root for all but `check`. Sets `KUBECONFIG` to the k3s config and puts `/usr/local/bin` first on `PATH`. |
+| [`element_chat/config.py`](../element_chat/config.py)             | Loads and validates `deployment.json` and `organization.json`, derives the `https://` URLs.                                                                                |
+| [`tests/`](../tests)                                              | The `unittest` suite that `./element check` runs.                                                                                                                          |
+| [`element_chat/support.py`](../element_chat/support.py)           | Paths and constants, subprocess and HTTP helpers, polling, atomic JSON writes with mode 0600.                                                                              |
+| [`element_chat/chart.py`](../element_chat/chart.py)               | Renders `chart/values.yaml.tmpl` into a temporary file and validates the chart with helm.                                                                                  |
+| [`element_chat/installation.py`](../element_chat/installation.py) | The pinned versions, the install phases, and `verify`.                                                                                                                     |
+| [`element_chat/users.py`](../element_chat/users.py)               | The CSV import and its receipt.                                                                                                                                            |
+| [`chart/`](../chart)                                              | The Helm chart. See [Chart](#chart).                                                                                                                                       |
 
-`support.run` replaces the value after `--password` with `<redacted>` in
-messages and errors.
+## Passwords
+
+The installer and `./element users` create accounts with
+`mas-cli manage register-user --password PASSWORD`, run by `kubectl exec` in the
+MAS pod. `mas-cli` 1.20 reads a password only from its command line, not from
+stdin or an environment variable, and the MAS image has no shell to wrap it. For
+the time each command runs, the password is visible in the process list of the
+server, in the `kubectl` and `mas-cli` processes. Run the installer and the
+import on a server where only trusted people have accounts. `support.run`
+replaces the value after `--password` with `<redacted>` in messages and errors.
 
 ## Installer state
 
@@ -72,7 +81,9 @@ The values do the following:
 - Disable MatrixRTC.
 - Turn off default end-to-end encryption for new rooms.
 - Load the Synapse module `ApprovedRoomsOnly` from the `synapse-policy`
-  ConfigMap.
+  ConfigMap. Only the running Synapse pod mounts it. The chart's config check
+  runs as a hook before the chart creates its ConfigMaps, so a hook that mounted
+  `synapse-policy` would not start.
 
 The templates in [`chart/templates/`](../chart/templates) add:
 

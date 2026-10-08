@@ -60,7 +60,9 @@ sudo ./element users /path/to/users.csv
 - Imports users in bulk with generated passwords and team room membership.
 - Serves Element Web and the account pages in Spanish.
 - Lets only the administrator and Synapse admins create rooms and send invites.
-- Checks the chart with `./element check`.
+- Rejects an invalid `deployment.json` or `organization.json` with a message
+  that names the field.
+- Runs the repository's tests and lints the chart with `./element check`.
 
 ## Documentation
 

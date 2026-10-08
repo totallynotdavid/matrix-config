@@ -27,9 +27,7 @@ change to a running server.
 | `hosts.admin`   | Element Admin.                                                                               |
 
 The file must contain exactly `brand` and these four hosts. Each host must be a
-lowercase public DNS name, and the four must differ. `./element check` and the
-installer's `preflight` phase enforce this
-([`element_chat/config.py`](../element_chat/config.py)).
+lowercase public DNS name, and the four must differ.
 
 ## organization.json
 
@@ -59,8 +57,22 @@ installer's `preflight` phase enforce this
 | `rooms[].key`                | The alias of a team room. [Users](users.md) refer to rooms by key. |
 | `rooms[].name`               | The room's display name.                                           |
 
+The file must contain exactly `administrator`, `space` and `rooms`, with the
+keys shown. `rooms` must hold at least one room. `display_name` and `name` must
+not be blank. The administrator's username, the Space key and the room keys
+become account names and room aliases, so each may use only `a-z`, `0-9` and
+`. _ = -`, and the Space key and the room keys must be unique.
+
 All rooms are private and are children of the Space. The installer creates them
 in the order listed.
+
+## Validation
+
+[`element_chat/config.py`](../element_chat/config.py) enforces the rules for
+both files. The installer's `preflight` phase and the tests run by
+`./element check` load the files through it, so an invalid file stops the
+installer before it changes the server, and the error names the file and the
+field.
 
 The static files that customize Element and the account pages are in
 [`chart/files/`](../chart/files); see [Architecture](architecture.md#chart).

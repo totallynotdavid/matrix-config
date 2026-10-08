@@ -26,20 +26,21 @@ also need a Cloudflare account that serves those hostnames.
 sudo ./install
 ```
 
-`./install` refuses to start when `/var/lib/element-chat/installation.json`
-exists. Resume instead (see [Resume](#resume)).
+`./install` is `./element install`. It refuses to start when
+`/var/lib/element-chat/installation.json` exists. Resume instead (see
+[Resume](#resume)).
 
 The installer runs these phases in order:
 
-| Phase          | What it does                                                                                                                                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `preflight`    | Checks the requirements above and loads the two configuration files.                                                                                                                       |
-| `tools`        | Downloads helm, kubectl and cloudflared into `/usr/local/bin`, checks each SHA-256 sum and version, downloads the k3s install script, and renders and lints the chart (`./element check`). |
-| `k3s`          | Installs the pinned k3s version. Waits for the node and Traefik to be ready.                                                                                                               |
-| `tunnel`       | Prints the hostnames to route, asks for the tunnel token, and starts a `cloudflared` systemd service.                                                                                      |
-| `application`  | Installs the Helm release `ess` into the namespace `ess` and waits up to 12 minutes. A failed install rolls back.                                                                          |
-| `organization` | Creates the administrator account, the Space and the team rooms.                                                                                                                           |
-| `verify`       | Runs the checks in [Verify](#verify).                                                                                                                                                      |
+| Phase          | What it does                                                                                                                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `preflight`    | Checks the requirements above and validates the two configuration files.                                                                                               |
+| `tools`        | Downloads helm, kubectl and cloudflared into `/usr/local/bin`, checks each SHA-256 sum and version, downloads the k3s install script, and renders and lints the chart. |
+| `k3s`          | Installs the pinned k3s version. Waits for the node and Traefik to be ready.                                                                                           |
+| `tunnel`       | Prints the hostnames to route, asks for the tunnel token, and starts a `cloudflared` systemd service.                                                                  |
+| `application`  | Installs the Helm release `ess` into the namespace `ess` and waits up to 12 minutes. A failed install rolls back.                                                      |
+| `organization` | Creates the administrator account, the Space and the team rooms.                                                                                                       |
+| `verify`       | Runs the checks in [Verify](#verify).                                                                                                                                  |
 
 The pinned versions are in
 [`element_chat/installation.py`](../element_chat/installation.py).
@@ -79,7 +80,8 @@ sudo ./element install --resume
 
 Finished phases are skipped. If the installer stops before it writes that file,
 run `sudo ./install` again. Resuming a finished installation fails and tells you
-to verify.
+to verify. Running `./install` when the file exists fails and names the resume
+command.
 
 ## Verify
 
