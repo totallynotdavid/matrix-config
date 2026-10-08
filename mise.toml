@@ -1,0 +1,6 @@
+[tools]
+helm = "4.2.3"
+
+[tasks.check]
+description = "render and lint the chart with ./element check"
+run = "./element check"
