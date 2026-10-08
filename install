@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-[[ "$(id -u)" -eq 0 ]] || { echo "Run this command as root." >&2; exit 1; }
-[[ ! -e /var/lib/element-chat/installation.json ]] || { echo "Installation already started. Use ./element resume or ./element verify." >&2; exit 1; }
+#!/usr/bin/env sh
+set -eu
 
 repo_root="$(cd "$(dirname "$0")" && pwd)"
-exec python3 "$repo_root/deploy.py" install
+exec python3 "$repo_root/deploy.py" install "$@"

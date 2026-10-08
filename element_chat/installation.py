@@ -23,6 +23,7 @@ from .support import (
     asset_checksum,
     command_output,
     download,
+    load_json,
     request,
     run,
     systemd_active,
@@ -318,15 +319,16 @@ def verify():
 
 
 def install(resume):
-    from .support import load_json
-
     if resume:
         state = load_json(STATE_FILE)
         if state.get("status") == "complete":
-            raise Failure("Element Chat is already installed. Run verify instead.")
+            raise Failure("Element Chat is already installed. Run ./element verify instead.")
     else:
         if STATE_FILE.exists():
-            raise Failure("An installation receipt already exists. Run the resume task.")
+            raise Failure(
+                "An installation already started. Run ./element install --resume to continue it "
+                "or ./element verify to check it."
+            )
         state = {"status": "installing", "started_at": timestamp(), "completed_phases": []}
         print("[preflight] running", flush=True)
         phase_preflight(state)
