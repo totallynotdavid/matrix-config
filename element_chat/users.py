@@ -1,12 +1,11 @@
 import csv
-import re
 import secrets
 import stat
 import urllib.parse
 from datetime import UTC, datetime
 from pathlib import Path
 
-from .config import load_configuration, load_deployment
+from .config import LOCALPART, load_configuration
 from .installation import compatibility_token, mas_manage, matrix_request
 from .support import (
     IMPORT_DIR,
@@ -39,7 +38,7 @@ def validate_worker_file(path, room_keys):
         if None in row or any(value is None for value in row.values()):
             raise Failure(f"Malformed CSV row {line}.")
         username = row["username"]
-        if not re.fullmatch(r"[a-z0-9._=-]+", username):
+        if not LOCALPART.fullmatch(username):
             raise Failure(f"Invalid username on line {line}: {username}")
         if username in seen:
             raise Failure(f"Duplicate username on line {line}: {username}")
