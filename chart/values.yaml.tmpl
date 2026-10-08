@@ -75,8 +75,6 @@ matrix-stack:
   synapse:
     ingress:
       host: $matrix_host
-    checkConfigHook:
-      enabled: false
     additional:
       encryption-default.yaml:
         config: |
@@ -93,7 +91,7 @@ matrix-stack:
         value: /modules
     extraVolumes:
       - name: synapse-policy
-        mountContext: both
+        mountContext: runtime
         configMap:
           name: synapse-policy
           items:
@@ -101,7 +99,7 @@ matrix-stack:
               path: room_creation_policy.py
     extraVolumeMounts:
       - name: synapse-policy
-        mountContext: both
+        mountContext: runtime
         mountPath: /modules
         readOnly: true
 
