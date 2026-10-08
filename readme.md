@@ -1,130 +1,70 @@
-# deploy: element chat
+# Element Chat
 
-Installs Element Server Suite on a new VPS.
+Element Chat installs a self-hosted [Element Server Suite][ess] (Matrix chat)
+with a Spanish interface on a new server. It is for an operator who runs chat
+for one organization: one administrator account, one Space and a fixed set of
+team rooms.
 
-## How it works
-
-- k3s runs Element Server Suite.
-- Traefik listens on port 80.
-- A Cloudflare Tunnel exposes the public websites.
-- Cloudflare handles HTTPS.
-- MatrixRTC is disabled because Cloudflare Tunnel does not support its UDP traffic.
-
-The public domains and product name are configured in `deployment.json`.
+It targets a single clean Ubuntu 26.04 x86_64 server running k3s. A Cloudflare
+Tunnel exposes the public sites and Cloudflare serves HTTPS, so the server holds
+no certificates. MatrixRTC is disabled.
 
 ## Install
 
-> [!NOTE]
-> The installer only works on a clean server. It will stop if k3s or cloudflared is already installed.
-
-Run:
+On the server, in a checkout of this repository:
 
 ```bash
-./install
+sudo ./install
 ```
 
-The installer will:
-
-1. Check the server.
-2. Download, checksum, and install the required tools into `/usr/local/bin`.
-3. Install k3s.
-4. Ask for a Cloudflare Tunnel token.
-5. Install Element Server Suite.
-6. Create the admin account, Space, and team rooms.
-7. Verify everything is working.
-
-When creating the Cloudflare Tunnel, add these hostnames from `deployment.json`:
+The installer checks the server, installs the tools and k3s, asks for a
+Cloudflare Tunnel token, installs Element Server Suite, creates the
+administrator, Space and team rooms, and verifies the result:
 
 ```text
-chat
-matrix
-account
-admin
+[preflight] running
+[preflight] complete
+[tools] running
+[tools] complete
+[k3s] running
+...
+[verify] complete
+Element Chat is installed. Bootstrap credentials: /var/lib/element-chat/bootstrap-credentials.txt
 ```
 
-Point each one to:
+[Installation](docs/installation.md) lists the requirements, the Cloudflare
+Tunnel settings and how to resume a stopped install.
 
-```text
-http://localhost:80
-```
+## Use
 
-Then add a final catch-all rule:
-
-```text
-http_status:404
-```
-
-Copy the tunnel token and paste it into the installer.
-
-Installation state is saved in:
-
-```text
-/var/lib/element-chat/installation.json
-```
-
-The admin credentials are written to the file shown at the end of the installation.
-
-If installation stops, resume it with:
-
-```bash
-sudo ./element resume
-```
-
-## Verify
+Check a running installation:
 
 ```bash
 sudo ./element verify
 ```
 
-Checks that k3s, cloudflared, Kubernetes, and Element are working.
-
-## Add users
-
-Create a CSV:
-
-```csv
-username,display_name,teams
-alice,Alicia Pérez,operations
-bob,Roberto Díaz,sales;general
-```
-
-Available teams:
-
-- general
-- operations
-- sales
-- management
-
-Import users:
+Create accounts from a CSV file and add them to their team rooms:
 
 ```bash
-sudo ./element users -- /path/to/users.csv
+sudo ./element users /path/to/users.csv
 ```
 
-The generated credentials are saved under:
+## Features
 
-```text
-/var/lib/element-chat/imports
-```
+- Installs from one command and resumes after a failure.
+- Downloads helm, kubectl and cloudflared at pinned versions and checks their
+  SHA-256 sums.
+- Takes the product name and the four public hostnames from `deployment.json`.
+- Creates the administrator, the Space and the team rooms listed in
+  `organization.json`.
+- Imports users in bulk with generated passwords and team room membership.
+- Serves Element Web and the account pages in Spanish.
+- Lets only the administrator and Synapse admins create rooms and send invites.
+- Checks the chart with `./element check`.
 
-If an import is interrupted:
+## Documentation
 
-```bash
-sudo ./element users-resume -- /var/lib/element-chat/imports/users-TIMESTAMP.json
-```
+- [Manual](docs/readme.md)
+- [Contributing](.github/contributing.md)
 
-## Check the repository
-
-```bash
-./element check
-```
-
-Renders the Helm chart with the pinned Helm binary.
-
-## Configuration
-
-- `deployment.json` defines the public domains and product name.
-- `organization.json` defines the admin account, Space, and team rooms.
-- `chart/values.yaml.tmpl` generates the Helm values.
-- `chart/files/` contains static files.
-- `deploy.py` pins Helm, kubectl, and cloudflared.
+[ess]: https://github.com/element-hq/ess-helm
