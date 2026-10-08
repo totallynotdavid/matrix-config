@@ -34,7 +34,7 @@ def validate(deployment, organization):
     run(["helm", "dependency", "build", CHART])
     with rendered_values(deployment, organization) as values:
         run(["helm", "lint", CHART, "--values", values, "--strict"])
-        run(
+        return run(
             [
                 "helm",
                 "template",

@@ -3,12 +3,11 @@
 import argparse
 import os
 import sys
+import unittest
 import urllib.error
 
-from element_chat.chart import validate
-from element_chat.config import load_configuration
 from element_chat.installation import install, verify
-from element_chat.support import CHART, Failure, require_root
+from element_chat.support import ROOT, Failure, require_root
 from element_chat.users import import_users
 
 
@@ -17,13 +16,11 @@ os.environ["PATH"] = f"/usr/local/bin:{os.environ['PATH']}"
 
 
 def check():
-    deployment, organization = load_configuration()
-    compile(
-        (CHART / "files" / "room_creation_policy.py").read_text(),
-        "room_creation_policy.py",
-        "exec",
+    suite = unittest.defaultTestLoader.discover(
+        str(ROOT / "tests"), top_level_dir=str(ROOT)
     )
-    validate(deployment, organization)
+    if not unittest.TextTestRunner().run(suite).wasSuccessful():
+        raise Failure("Repository checks failed.")
     print("Repository checks passed.")
 
 
