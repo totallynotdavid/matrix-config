@@ -70,7 +70,7 @@ in the order listed.
 
 [`element_chat/config.py`](../element_chat/config.py) enforces the rules for
 both files. The installer's `preflight` phase and the tests run by
-`./element check` load the files through it, so an invalid file stops the
+`mise run test` load the files through it, so an invalid file stops the
 installer before it changes the server, and the error names the file and the
 field.
 

@@ -27,18 +27,18 @@ run `mas-cli` with `kubectl exec` in the MAS pod.
 
 The Python code uses the standard library only.
 
-| Path                                                              | Responsibility                                                                                                                                                             |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install`](../install)                                           | Runs `deploy.py install` with its arguments.                                                                                                                               |
-| [`element`](../element)                                           | Passes its arguments to `deploy.py`.                                                                                                                                       |
-| [`deploy.py`](../deploy.py)                                       | The command line: `install`, `verify`, `check`, `users`. Requires root for all but `check`. Sets `KUBECONFIG` to the k3s config and puts `/usr/local/bin` first on `PATH`. |
-| [`element_chat/config.py`](../element_chat/config.py)             | Loads and validates `deployment.json` and `organization.json`, derives the `https://` URLs.                                                                                |
-| [`tests/`](../tests)                                              | The `unittest` suite that `./element check` runs.                                                                                                                          |
-| [`element_chat/support.py`](../element_chat/support.py)           | Paths and constants, subprocess and HTTP helpers, polling, atomic JSON writes with mode 0600.                                                                              |
-| [`element_chat/chart.py`](../element_chat/chart.py)               | Renders `chart/values.yaml.tmpl` into a temporary file and validates the chart with helm.                                                                                  |
-| [`element_chat/installation.py`](../element_chat/installation.py) | The pinned versions, the install phases, and `verify`.                                                                                                                     |
-| [`element_chat/users.py`](../element_chat/users.py)               | The CSV import and its receipt.                                                                                                                                            |
-| [`chart/`](../chart)                                              | The Helm chart. See [Chart](#chart).                                                                                                                                       |
+| Path                                                              | Responsibility                                                                                                                                |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`install`](../install)                                           | Runs `deploy.py install` with its arguments.                                                                                                  |
+| [`element`](../element)                                           | Passes its arguments to `deploy.py`.                                                                                                          |
+| [`deploy.py`](../deploy.py)                                       | The command line: `install`, `verify`, `users`. Requires root. Sets `KUBECONFIG` to the k3s config and puts `/usr/local/bin` first on `PATH`. |
+| [`element_chat/config.py`](../element_chat/config.py)             | Loads and validates `deployment.json` and `organization.json`, derives the `https://` URLs.                                                   |
+| [`tests/`](../tests)                                              | The pytest suite that `mise run test` and `mise run test:integration` run.                                                                    |
+| [`element_chat/support.py`](../element_chat/support.py)           | Paths and constants, subprocess and HTTP helpers, polling, atomic JSON writes with mode 0600.                                                 |
+| [`element_chat/chart.py`](../element_chat/chart.py)               | Renders `chart/values.yaml.tmpl` into a temporary file and validates the chart with helm.                                                     |
+| [`element_chat/installation.py`](../element_chat/installation.py) | The pinned versions, the install phases, and `verify`.                                                                                        |
+| [`element_chat/users.py`](../element_chat/users.py)               | The CSV import and its receipt.                                                                                                               |
+| [`chart/`](../chart)                                              | The Helm chart. See [Chart](#chart).                                                                                                          |
 
 ## Passwords
 

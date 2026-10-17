@@ -2,11 +2,16 @@
 
 ## Set up
 
-You need Python 3.11 or later and [mise](https://mise.jdx.dev). The Python code
-and its tests have no third-party dependencies. `mise run check` installs the
-helm version pinned in [`mise.toml`](../mise.toml), which matches the one the
-installer downloads
-([`element_chat/installation.py`](../element_chat/installation.py)).
+Install [mise](https://mise.jdx.dev), then run:
+
+```bash
+mise run install
+```
+
+[`mise.toml`](../mise.toml) pins Python, uv, helm, gitleaks and oxfmt. The helm
+version matches the one the installer downloads
+([`element_chat/installation.py`](../element_chat/installation.py)). The install
+task syncs the Python dev tools from `uv.lock`.
 
 ## Check a change
 
@@ -14,19 +19,27 @@ installer downloads
 mise run check
 ```
 
-The task runs `./element check`, which runs every test in [`tests/`](../tests)
-with `unittest`:
+The task writes nothing. It runs:
+
+- `lint`: ruff, oxfmt for Markdown, JSON and YAML, and gitleaks over the tree.
+- `typecheck`: `mypy --strict` over `deploy.py`, `element_chat/` and `tests/`.
+- `test`: the pytest suite in [`tests/`](../tests), without the `integration`
+  marker.
+
+`mise run fix` applies the safe ruff fixes and formats every file.
+
+The suite covers:
 
 - `test_config.py` loads `deployment.json` and `organization.json` and rejects
   invalid files.
 - `test_users.py` validates worker CSV files.
-- `test_chart.py` compiles `chart/files/room_creation_policy.py`, then runs
-  `helm dependency build`, `helm lint --strict` and `helm template` on the chart
-  and checks the rendered hook. The dependency build downloads the ESS chart
-  from `ghcr.io`, so it needs network access.
+- `test_chart.py` compiles `chart/files/room_creation_policy.py`. Its
+  `integration` test runs `helm dependency build`, `helm lint --strict` and
+  `helm template` on the chart and checks the rendered hook. The dependency
+  build downloads the ESS chart from `ghcr.io`, so `mise run test:integration`
+  needs network access.
 
-The command ends with `Repository checks passed.` and exits 1 when a test fails.
-To run one file, use `python3 -m unittest tests.test_users`.
+To run one file, use `uv run pytest tests/test_users.py`.
 
 The tests do not touch a cluster. The installer phases, `verify` and the user
 import need a real server. Try a change to them on a clean Ubuntu 26.04 server
@@ -38,11 +51,5 @@ not a mock.
 
 ## Documentation
 
-Format Markdown with:
-
-```bash
-bunx prettier --print-width 80 --prose-wrap always --write '**/*.md'
-```
-
-Each fact lives in one document. The [manual](../docs/readme.md) lists which
-document owns what.
+`mise run fix` formats Markdown. Each fact lives in one document. The
+[manual](../docs/readme.md) lists which document owns what.

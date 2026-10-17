@@ -62,7 +62,6 @@ sudo ./element users /path/to/users.csv
 - Lets only the administrator and Synapse admins create rooms and send invites.
 - Rejects an invalid `deployment.json` or `organization.json` with a message
   that names the field.
-- Runs the repository's tests and lints the chart with `./element check`.
 
 ## Documentation
 

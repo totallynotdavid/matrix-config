@@ -5,7 +5,6 @@
 The installer stops in its first phase unless the server has:
 
 - Ubuntu 26.04 on x86_64.
-- Python 3.11 or later.
 - At least 8 GB of RAM.
 - At least 30 GB of free disk space on `/`.
 - No k3s and no cloudflared. A running `k3s` or `cloudflared` service, or the
