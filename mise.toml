@@ -1,6 +1,49 @@
+[env]
+UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
+
 [tools]
+python = "3.14.7"
+uv = "0.13.1"
 helm = "4.2.3"
+gitleaks = "8.30.1"
+oxfmt = "0.73.0"
+
+[tasks.install]
+description = "Install the Python dev tools from uv.lock without resolving."
+run = "uv sync --locked"
+
+[tasks.lint]
+description = "Check Python, Markdown, JSON and YAML formatting, and scan for secrets. Writes nothing."
+depends = ["lint:*"]
+
+[tasks."lint:py"]
+description = "Check Python with ruff."
+run = ["uv run ruff check --no-fix .", "uv run ruff format --check ."]
+
+[tasks."lint:format"]
+description = "Check Markdown, JSON and YAML formatting with oxfmt."
+run = "oxfmt --check ."
+
+[tasks."lint:secrets"]
+description = "Scan the working tree for secrets with gitleaks."
+run = "gitleaks dir --no-banner --redact ."
+
+[tasks.fix]
+description = "Apply safe ruff fixes and format Python, Markdown, JSON and YAML."
+run = ["uv run ruff check --fix .", "uv run ruff format .", "oxfmt ."]
+
+[tasks.typecheck]
+description = "Type check the Python code with mypy --strict."
+run = "uv run mypy"
+
+[tasks.test]
+description = "Run the offline test suite."
+run = "uv run pytest -m 'not integration'"
+
+[tasks."test:integration"]
+description = "Run the tests that download the ESS chart and render it with helm."
+run = "uv run pytest -m integration"
 
 [tasks.check]
-description = "render and lint the chart with ./element check"
-run = "./element check"
+description = "Lint, type check and test. Writes nothing."
+depends = ["lint", "typecheck", "test"]

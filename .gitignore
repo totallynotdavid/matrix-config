@@ -1,2 +1,6 @@
 __pycache__/
 chart/charts/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
