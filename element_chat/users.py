@@ -3,7 +3,9 @@ import secrets
 import stat
 import urllib.parse
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
+from typing import Any
 
 from .config import LOCALPART, load_configuration
 from .installation import compatibility_token, mas_manage, matrix_request
@@ -19,21 +21,25 @@ from .support import (
 )
 
 
-def validate_worker_file(path, room_keys):
+def validate_worker_file(path: Path, room_keys: set[str]) -> list[dict[str, Any]]:
     resolved = path.resolve()
-    if ROOT == resolved or ROOT in resolved.parents:
+    if resolved == ROOT or ROOT in resolved.parents:
         raise Failure("Worker CSV files must be stored outside the repository.")
     mode = stat.S_IMODE(resolved.stat().st_mode)
     if mode & (stat.S_IRWXG | stat.S_IRWXO):
-        raise Failure("The worker CSV must be readable and writable only by its owner (mode 0600).")
+        raise Failure(
+            "The worker CSV must be readable and writable only by its owner (mode 0600)."
+        )
     with resolved.open(newline="") as stream:
         reader = csv.DictReader(stream)
         if reader.fieldnames != ["username", "display_name", "teams"]:
-            raise Failure("Worker CSV columns must be exactly: username,display_name,teams")
-        rows = list(reader)
+            raise Failure(
+                "Worker CSV columns must be exactly: username,display_name,teams"
+            )
+        rows: list[dict[str, Any]] = list(reader)
     if not rows:
         raise Failure("The worker CSV is empty.")
-    seen = set()
+    seen: set[str] = set()
     for line, row in enumerate(rows, 2):
         if None in row or any(value is None for value in row.values()):
             raise Failure(f"Malformed CSV row {line}.")
@@ -56,8 +62,10 @@ def validate_worker_file(path, room_keys):
     return rows
 
 
-def user_exists(deployment, token, username):
-    user_id = urllib.parse.quote(f"@{username}:{deployment['hosts']['matrix']}", safe="")
+def user_exists(deployment: Any, token: str, username: str) -> bool:
+    user_id = urllib.parse.quote(
+        f"@{username}:{deployment['hosts']['matrix']}", safe=""
+    )
     result = matrix_request(
         deployment,
         "GET",
@@ -65,10 +73,10 @@ def user_exists(deployment, token, username):
         token=token,
         allowed=(200, 404),
     )
-    return result is not None and isinstance(result, dict) and "name" in result
+    return isinstance(result, dict) and "name" in result
 
 
-def join_room(deployment, token, user_id, room_id):
+def join_room(deployment: Any, token: str, user_id: str, room_id: str) -> None:
     matrix_request(
         deployment,
         "POST",
@@ -78,7 +86,7 @@ def join_room(deployment, token, user_id, room_id):
     )
 
 
-def write_credentials(receipt):
+def write_credentials(receipt: dict[str, Any]) -> None:
     path = Path(receipt["credentials_file"])
     temporary = path.with_suffix(".tmp")
     with temporary.open("w", newline="") as stream:
@@ -91,7 +99,7 @@ def write_credentials(receipt):
     temporary.replace(path)
 
 
-def import_users(csv_path=None, resume_path=None):
+def import_users(csv_path: str | None = None, resume_path: str | None = None) -> None:
     state = load_json(STATE_FILE)
     if state.get("status") != "complete":
         raise Failure("Element Chat installation is not complete.")
@@ -107,8 +115,14 @@ def import_users(csv_path=None, resume_path=None):
         if receipt.get("status") == "complete":
             raise Failure("This user import is already complete.")
     else:
+        if csv_path is None:
+            raise Failure("Provide either a worker CSV or a receipt to resume.")
         rows = validate_worker_file(Path(csv_path), set(team_rooms))
-        existing = [row["username"] for row in rows if user_exists(deployment, token, row["username"])]
+        existing = [
+            row["username"]
+            for row in rows
+            if user_exists(deployment, token, row["username"])
+        ]
         if existing:
             raise Failure("These accounts already exist: " + ", ".join(existing))
         IMPORT_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,8 +149,14 @@ def import_users(csv_path=None, resume_path=None):
     for worker in receipt["workers"]:
         if not worker["account_created"]:
             mas_manage(
-                "register-user", "--yes", "--no-admin", "--display-name",
-                worker["display_name"], "--password", worker["password"], worker["username"],
+                "register-user",
+                "--yes",
+                "--no-admin",
+                "--display-name",
+                worker["display_name"],
+                "--password",
+                worker["password"],
+                worker["username"],
             )
             worker["account_created"] = True
             write_json(receipt_path, receipt)
@@ -146,7 +166,7 @@ def import_users(csv_path=None, resume_path=None):
         user_id = f"@{worker['username']}:{deployment['hosts']['matrix']}"
         wait_for(
             f"Synapse user {user_id}",
-            lambda: user_exists(deployment, token, worker["username"]),
+            partial(user_exists, deployment, token, worker["username"]),
             timeout=120,
         )
         for room_key in [space_key, *worker["teams"]]:
@@ -158,4 +178,6 @@ def import_users(csv_path=None, resume_path=None):
     receipt["completed_at"] = timestamp()
     write_json(receipt_path, receipt)
     write_credentials(receipt)
-    print(f"Created {len(receipt['workers'])} users. Credentials: {receipt['credentials_file']}")
+    print(
+        f"Created {len(receipt['workers'])} users. Credentials: {receipt['credentials_file']}"
+    )

@@ -1,14 +1,16 @@
 import json
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from string import Template
+from typing import Any
 
 from .support import CHART, NAMESPACE, RELEASE, VALUES_TEMPLATE, Failure, run
 
 
 @contextmanager
-def rendered_values(deployment, organization):
+def rendered_values(deployment: Any, organization: Any) -> Iterator[Path]:
     values = {
         "brand_json": json.dumps(deployment["brand"], ensure_ascii=False),
         "administrator_username": organization["administrator"]["username"],
@@ -30,7 +32,7 @@ def rendered_values(deployment, organization):
         path.unlink(missing_ok=True)
 
 
-def validate(deployment, organization):
+def validate(deployment: Any, organization: Any) -> str:
     run(["helm", "dependency", "build", CHART])
     with rendered_values(deployment, organization) as values:
         run(["helm", "lint", CHART, "--values", values, "--strict"])

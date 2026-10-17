@@ -1,20 +1,21 @@
 import re
+from pathlib import Path
+from typing import Any
 
 from .support import DEPLOYMENT, ORGANIZATION, Failure, load_json
-
 
 LOCALPART = re.compile(r"[a-z0-9._=-]+")
 
 
-def has_keys(value, keys):
+def has_keys(value: Any, keys: set[str]) -> bool:
     return isinstance(value, dict) and set(value) == keys
 
 
-def non_empty_string(value):
+def non_empty_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def load_deployment(path=DEPLOYMENT):
+def load_deployment(path: Path = DEPLOYMENT) -> Any:
     deployment = load_json(path)
     expected_hosts = {"chat", "matrix", "account", "admin"}
     if not has_keys(deployment, {"brand", "hosts"}) or not has_keys(
@@ -42,7 +43,7 @@ def load_deployment(path=DEPLOYMENT):
     return deployment
 
 
-def load_organization(path=ORGANIZATION):
+def load_organization(path: Path = ORGANIZATION) -> Any:
     organization = load_json(path)
     name = path.name
     if not has_keys(organization, {"administrator", "space", "rooms"}):
@@ -76,5 +77,5 @@ def load_organization(path=ORGANIZATION):
     return organization
 
 
-def load_configuration():
+def load_configuration() -> tuple[Any, Any]:
     return load_deployment(), load_organization()

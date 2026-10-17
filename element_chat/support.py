@@ -5,9 +5,10 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable, Collection, Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
-
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CHART = ROOT / "chart"
@@ -25,10 +26,17 @@ class Failure(RuntimeError):
     pass
 
 
-def run(args, *, input_text=None, env=None, capture=False, timeout=None):
+def run(
+    args: Iterable[object],
+    *,
+    input_text: str | None = None,
+    env: Mapping[str, str] | None = None,
+    capture: bool = False,
+    timeout: float | None = None,
+) -> str:
     arguments = [str(arg) for arg in args]
     displayed = arguments.copy()
-    secrets_to_redact = []
+    secrets_to_redact: list[str] = []
     for index, argument in enumerate(arguments[:-1]):
         if argument == "--password":
             secrets_to_redact.append(arguments[index + 1])
@@ -60,11 +68,11 @@ def run(args, *, input_text=None, env=None, capture=False, timeout=None):
     )
 
 
-def timestamp():
+def timestamp() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def write_json(path, value, mode=0o600):
+def write_json(path: Path, value: Any, mode: int = 0o600) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
@@ -72,7 +80,7 @@ def write_json(path, value, mode=0o600):
     temporary.replace(path)
 
 
-def load_json(path):
+def load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text())
     except FileNotFoundError as error:
@@ -81,23 +89,28 @@ def load_json(path):
         raise Failure(f"Invalid JSON in {path}: {error}") from error
 
 
-def require_root():
+def require_root() -> None:
     if os.geteuid() != 0:
         raise Failure("Run this operation as root.")
 
 
-def command_output(args):
+def command_output(args: Iterable[object]) -> str:
     return run(args, capture=True)
 
 
-def systemd_active(service):
+def systemd_active(service: str) -> bool:
     result = subprocess.run(["systemctl", "is-active", "--quiet", service], check=False)
     return result.returncode == 0
 
 
-def wait_for(description, check, timeout=300, interval=3):
+def wait_for(
+    description: str,
+    check: Callable[[], object],
+    timeout: float = 300,
+    interval: float = 3,
+) -> None:
     deadline = time.monotonic() + timeout
-    last_error = None
+    last_error: Exception | None = None
     while time.monotonic() < deadline:
         try:
             if check():
@@ -109,22 +122,31 @@ def wait_for(description, check, timeout=300, interval=3):
     raise Failure(f"Timed out waiting for {description}{suffix}")
 
 
-def download(url):
+def download(url: str) -> bytes:
     request = urllib.request.Request(
         url, headers={"User-Agent": "Element-Deployment/1.0"}
     )
     with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read()
+        data: bytes = response.read()
+        return data
 
 
-def asset_checksum(*names):
+def asset_checksum(*names: str) -> str:
     digest = hashlib.sha256()
     for name in names:
         digest.update((CHART / "files" / name).read_bytes())
     return digest.hexdigest()
 
 
-def request(method, url, *, token=None, body=None, headers=None, allowed=(200,)):
+def request(
+    method: str,
+    url: str,
+    *,
+    token: str | None = None,
+    body: Any = None,
+    headers: Mapping[str, str] | None = None,
+    allowed: Collection[int] = (200,),
+) -> Any:
     request_headers = {"User-Agent": "Element-Deployment/1.0", **(headers or {})}
     if token:
         request_headers["Authorization"] = f"Bearer {token}"

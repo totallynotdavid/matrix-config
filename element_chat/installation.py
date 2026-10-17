@@ -6,10 +6,11 @@ import platform
 import re
 import secrets
 import shutil
-import sys
 import tarfile
 import urllib.parse
+from collections.abc import Callable, Collection
 from pathlib import Path
+from typing import Any
 
 from .chart import rendered_values, validate
 from .config import load_configuration, load_deployment
@@ -32,6 +33,7 @@ from .support import (
     write_json,
 )
 
+State = dict[str, Any]
 
 K3S_VERSION = "v1.36.2+k3s1"
 TOOLS = {
@@ -52,11 +54,19 @@ TOOLS = {
         "sha256": "ec905ea7b7e327ff8abdde8cb64697a2152de74dbcdbf6aec9db8364eb3886cd",
     },
 }
-PHASES = ("preflight", "tools", "k3s", "tunnel", "application", "organization", "verify")
+PHASES = (
+    "preflight",
+    "tools",
+    "k3s",
+    "tunnel",
+    "application",
+    "organization",
+    "verify",
+)
 
 
-def ensure_host_requirements():
-    os_release = {}
+def ensure_host_requirements() -> None:
+    os_release: dict[str, str] = {}
     for line in Path("/etc/os-release").read_text().splitlines():
         if "=" in line:
             key, value = line.split("=", 1)
@@ -65,8 +75,6 @@ def ensure_host_requirements():
         raise Failure("This installer supports Ubuntu 26.04 only.")
     if platform.machine() != "x86_64":
         raise Failure("This installer supports x86_64 only.")
-    if sys.version_info < (3, 11):
-        raise Failure("Python 3.11 or later is required.")
     memory = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
     if memory < 7_500_000_000:
         raise Failure("At least 8 GB of RAM is required.")
@@ -74,8 +82,8 @@ def ensure_host_requirements():
         raise Failure("At least 30 GB of free disk space is required.")
 
 
-def fresh_host_must_be_empty():
-    conflicts = []
+def fresh_host_must_be_empty() -> None:
+    conflicts: list[str] = []
     if systemd_active("k3s") or Path("/etc/rancher/k3s/k3s.yaml").exists():
         conflicts.append("k3s")
     if systemd_active("cloudflared") or Path("/etc/cloudflared/token").exists():
@@ -84,7 +92,7 @@ def fresh_host_must_be_empty():
         raise Failure("Existing infrastructure found: " + ", ".join(conflicts))
 
 
-def install_tool(name, tool):
+def install_tool(name: str, tool: dict[str, str]) -> None:
     archive = download(tool["url"])
     if hashlib.sha256(archive).hexdigest() != tool["sha256"]:
         raise Failure(f"Checksum mismatch while downloading {name}.")
@@ -102,13 +110,13 @@ def install_tool(name, tool):
     temporary.replace(target)
 
 
-def phase_preflight(state):
+def phase_preflight(state: State) -> None:
     ensure_host_requirements()
     fresh_host_must_be_empty()
     load_configuration()
 
 
-def phase_tools(state):
+def phase_tools(state: State) -> None:
     for name, tool in TOOLS.items():
         install_tool(name, tool)
     actual = {
@@ -126,35 +134,56 @@ def phase_tools(state):
     validate(*load_configuration())
 
 
-def phase_k3s(state):
+def phase_k3s(state: State) -> None:
     installer_path = STATE_DIR / "k3s-install.sh"
     if not installer_path.is_file():
         raise Failure("The prepared k3s installer is missing.")
     env = os.environ.copy()
     env["INSTALL_K3S_VERSION"] = K3S_VERSION
-    run(["sh", "-s", "-", "server"], input_text=installer_path.read_text(), env=env, timeout=600)
+    run(
+        ["sh", "-s", "-", "server"],
+        input_text=installer_path.read_text(),
+        env=env,
+        timeout=600,
+    )
     wait_for("k3s", lambda: systemd_active("k3s"), timeout=120)
     wait_for(
         "the Kubernetes node",
-        lambda: " Ready " in " " + command_output(["kubectl", "get", "nodes", "--no-headers"]) + " ",
+        lambda: (
+            " Ready "
+            in " " + command_output(["kubectl", "get", "nodes", "--no-headers"]) + " "
+        ),
         timeout=300,
     )
     if K3S_VERSION.removeprefix("v") not in command_output(["k3s", "--version"]):
         raise Failure("k3s installed a version different from the pinned version.")
     wait_for(
         "Traefik",
-        lambda: command_output([
-            "kubectl", "-n", "kube-system", "get", "deployment", "traefik",
-            "-o", "jsonpath={.status.readyReplicas}",
-        ]) == "1",
+        lambda: (
+            command_output(
+                [
+                    "kubectl",
+                    "-n",
+                    "kube-system",
+                    "get",
+                    "deployment",
+                    "traefik",
+                    "-o",
+                    "jsonpath={.status.readyReplicas}",
+                ]
+            )
+            == "1"
+        ),
         timeout=300,
     )
     installer_path.unlink()
 
 
-def phase_tunnel(state):
+def phase_tunnel(state: State) -> None:
     deployment = load_deployment()
-    print("Create a remotely managed Cloudflare Tunnel and configure these public hostnames:")
+    print(
+        "Create a remotely managed Cloudflare Tunnel and configure these public hostnames:"
+    )
     for url in deployment["urls"].values():
         print(f"  {urllib.parse.urlparse(url).hostname} -> http://localhost:80")
     print("Add a final catch-all rule with service http_status:404.")
@@ -190,33 +219,66 @@ WantedBy=multi-user.target
     wait_for("Cloudflare Tunnel", lambda: systemd_active("cloudflared"), timeout=60)
 
 
-def phase_application(state):
+def phase_application(state: State) -> None:
     deployment, organization = load_configuration()
-    element_hash = asset_checksum("favicon.ico", "logo.webp", "custom-translations.json")
+    element_hash = asset_checksum(
+        "favicon.ico", "logo.webp", "custom-translations.json"
+    )
     mas_hash = asset_checksum("mas-es.json")
     synapse_hash = asset_checksum("room_creation_policy.py")
     with rendered_values(deployment, organization) as values:
-        run([
-            "helm", "install", RELEASE, CHART, "--namespace", NAMESPACE,
-            "--create-namespace", "--rollback-on-failure", "--wait", "--timeout", "12m",
-            "--values", values,
-            "--set-string", f"matrix-stack.elementWeb.annotations.element-assets-checksum={element_hash}",
-            "--set-string", f"matrix-stack.matrixAuthenticationService.annotations.mas-translations-checksum={mas_hash}",
-            "--set-string", f"matrix-stack.synapse.annotations.room-policy-checksum={synapse_hash}",
-        ], timeout=900)
+        run(
+            [
+                "helm",
+                "install",
+                RELEASE,
+                CHART,
+                "--namespace",
+                NAMESPACE,
+                "--create-namespace",
+                "--rollback-on-failure",
+                "--wait",
+                "--timeout",
+                "12m",
+                "--values",
+                values,
+                "--set-string",
+                f"matrix-stack.elementWeb.annotations.element-assets-checksum={element_hash}",
+                "--set-string",
+                f"matrix-stack.matrixAuthenticationService.annotations.mas-translations-checksum={mas_hash}",
+                "--set-string",
+                f"matrix-stack.synapse.annotations.room-policy-checksum={synapse_hash}",
+            ],
+            timeout=900,
+        )
 
 
-def mas_manage(*args, capture=False):
-    return run([
-        "kubectl", "exec", "-n", NAMESPACE,
-        f"deployment/{RELEASE}-matrix-authentication-service",
-        "--container", "matrix-authentication-service", "--", "mas-cli", "manage", *args,
-    ], capture=capture, timeout=120)
+def mas_manage(*args: str, capture: bool = False) -> str:
+    return run(
+        [
+            "kubectl",
+            "exec",
+            "-n",
+            NAMESPACE,
+            f"deployment/{RELEASE}-matrix-authentication-service",
+            "--container",
+            "matrix-authentication-service",
+            "--",
+            "mas-cli",
+            "manage",
+            *args,
+        ],
+        capture=capture,
+        timeout=120,
+    )
 
 
-def compatibility_token(username):
+def compatibility_token(username: str) -> str:
     output = mas_manage(
-        "issue-compatibility-token", "--yes-i-want-to-grant-synapse-admin-privileges", username, capture=True
+        "issue-compatibility-token",
+        "--yes-i-want-to-grant-synapse-admin-privileges",
+        username,
+        capture=True,
     )
     match = re.search(r"mct_[A-Za-z0-9_-]+", output)
     if not match:
@@ -224,61 +286,119 @@ def compatibility_token(username):
     return match.group(0)
 
 
-def matrix_request(deployment, method, path, *, token, body=None, allowed=(200,)):
-    return request(method, deployment["urls"]["matrix"] + path, token=token, body=body, allowed=allowed)
+def matrix_request(
+    deployment: Any,
+    method: str,
+    path: str,
+    *,
+    token: str,
+    body: Any = None,
+    allowed: Collection[int] = (200,),
+) -> Any:
+    return request(
+        method,
+        deployment["urls"]["matrix"] + path,
+        token=token,
+        body=body,
+        allowed=allowed,
+    )
 
 
-def save_install_state(state):
+def save_install_state(state: State) -> None:
     state["updated_at"] = timestamp()
     write_json(STATE_FILE, state)
 
 
-def phase_organization(state):
+def phase_organization(state: State) -> None:
     deployment, organization = load_configuration()
     progress = state.setdefault("organization", {})
     admin = organization["administrator"]
     username = admin["username"]
     if "administrator" not in progress:
         password = "Chat!" + secrets.token_urlsafe(24)
-        mas_manage("register-user", "--yes", "--admin", "--display-name", admin["display_name"], "--password", password, username)
+        mas_manage(
+            "register-user",
+            "--yes",
+            "--admin",
+            "--display-name",
+            admin["display_name"],
+            "--password",
+            password,
+            username,
+        )
         credentials = STATE_DIR / "bootstrap-credentials.txt"
         credentials.write_text(f"username,password\n{username},{password}\n")
         credentials.chmod(0o600)
-        progress["administrator"] = {"username": username, "credentials": str(credentials)}
+        progress["administrator"] = {
+            "username": username,
+            "credentials": str(credentials),
+        }
         save_install_state(state)
     mas_manage("provision-all-users")
     token = compatibility_token(username)
     rooms = progress.setdefault("rooms", {})
     space = organization["space"]
     if space["key"] not in rooms:
-        result = matrix_request(deployment, "POST", "/_matrix/client/v3/createRoom", token=token, body={
-            "creation_content": {"type": "m.space"}, "name": deployment["brand"],
-            "preset": "private_chat", "room_alias_name": space["key"],
-        })
+        result = matrix_request(
+            deployment,
+            "POST",
+            "/_matrix/client/v3/createRoom",
+            token=token,
+            body={
+                "creation_content": {"type": "m.space"},
+                "name": deployment["brand"],
+                "preset": "private_chat",
+                "room_alias_name": space["key"],
+            },
+        )
         rooms[space["key"]] = result["room_id"]
         save_install_state(state)
     space_id = rooms[space["key"]]
     for position, room in enumerate(organization["rooms"]):
         if room["key"] not in rooms:
-            result = matrix_request(deployment, "POST", "/_matrix/client/v3/createRoom", token=token, body={
-                "name": room["name"], "preset": "private_chat", "room_alias_name": room["key"],
-                "initial_state": [{"type": "m.space.parent", "state_key": space_id, "content": {
-                    "via": [deployment["hosts"]["matrix"]], "canonical": True,
-                }}],
-            })
+            result = matrix_request(
+                deployment,
+                "POST",
+                "/_matrix/client/v3/createRoom",
+                token=token,
+                body={
+                    "name": room["name"],
+                    "preset": "private_chat",
+                    "room_alias_name": room["key"],
+                    "initial_state": [
+                        {
+                            "type": "m.space.parent",
+                            "state_key": space_id,
+                            "content": {
+                                "via": [deployment["hosts"]["matrix"]],
+                                "canonical": True,
+                            },
+                        }
+                    ],
+                },
+            )
             rooms[room["key"]] = result["room_id"]
             save_install_state(state)
         room_id = rooms[room["key"]]
         path = "/_matrix/client/v3/rooms/{}/state/m.space.child/{}".format(
             urllib.parse.quote(space_id, safe=""), urllib.parse.quote(room_id, safe="")
         )
-        matrix_request(deployment, "PUT", path, token=token, body={
-            "via": [deployment["hosts"]["matrix"]], "order": f"{position:02d}",
-        })
+        matrix_request(
+            deployment,
+            "PUT",
+            path,
+            token=token,
+            body={
+                "via": [deployment["hosts"]["matrix"]],
+                "order": f"{position:02d}",
+            },
+        )
 
 
-def ready_pods():
-    items = json.loads(command_output(["kubectl", "-n", NAMESPACE, "get", "pods", "-o", "json"]))["items"]
+def ready_pods() -> bool:
+    items = json.loads(
+        command_output(["kubectl", "-n", NAMESPACE, "get", "pods", "-o", "json"])
+    )["items"]
     if not items:
         return False
     for item in items:
@@ -292,7 +412,7 @@ def ready_pods():
     return True
 
 
-def verify():
+def verify() -> None:
     deployment = load_deployment()
     if not systemd_active("k3s"):
         raise Failure("k3s is not active.")
@@ -308,9 +428,13 @@ def verify():
     config = request("GET", deployment["urls"]["chat"] + "/config.json")
     if (
         config.get("brand") != deployment["brand"]
-        or config.get("default_server_config", {}).get("m.homeserver", {}).get("base_url") != deployment["urls"]["matrix"]
+        or config.get("default_server_config", {})
+        .get("m.homeserver", {})
+        .get("base_url")
+        != deployment["urls"]["matrix"]
         or config.get("setting_defaults", {}).get("language") != "es"
-        or config.get("custom_translations_url") != deployment["urls"]["chat"] + "/custom-translations.json"
+        or config.get("custom_translations_url")
+        != deployment["urls"]["chat"] + "/custom-translations.json"
     ):
         raise Failure("Element does not expose the expected deployment configuration.")
     if '<html lang="es">' not in request("GET", deployment["urls"]["account"]):
@@ -318,26 +442,37 @@ def verify():
     request("GET", deployment["urls"]["admin"])
 
 
-def install(resume):
+def install(resume: bool) -> None:
     if resume:
         state = load_json(STATE_FILE)
         if state.get("status") == "complete":
-            raise Failure("Element Chat is already installed. Run ./element verify instead.")
+            raise Failure(
+                "Element Chat is already installed. Run ./element verify instead."
+            )
     else:
         if STATE_FILE.exists():
             raise Failure(
                 "An installation already started. Run ./element install --resume to continue it "
                 "or ./element verify to check it."
             )
-        state = {"status": "installing", "started_at": timestamp(), "completed_phases": []}
+        state = {
+            "status": "installing",
+            "started_at": timestamp(),
+            "completed_phases": [],
+        }
         print("[preflight] running", flush=True)
         phase_preflight(state)
         state["completed_phases"].append("preflight")
         write_json(STATE_FILE, state)
         print("[preflight] complete", flush=True)
-    handlers = {
-        "preflight": phase_preflight, "tools": phase_tools, "k3s": phase_k3s, "tunnel": phase_tunnel,
-        "application": phase_application, "organization": phase_organization, "verify": lambda _: verify(),
+    handlers: dict[str, Callable[[State], None]] = {
+        "preflight": phase_preflight,
+        "tools": phase_tools,
+        "k3s": phase_k3s,
+        "tunnel": phase_tunnel,
+        "application": phase_application,
+        "organization": phase_organization,
+        "verify": lambda _: verify(),
     }
     completed = set(state["completed_phases"])
     phases = PHASES if resume else PHASES[1:]
@@ -353,4 +488,6 @@ def install(resume):
     state["status"] = "complete"
     state["completed_at"] = timestamp()
     save_install_state(state)
-    print(f"Element Chat is installed. Bootstrap credentials: {state['organization']['administrator']['credentials']}")
+    print(
+        f"Element Chat is installed. Bootstrap credentials: {state['organization']['administrator']['credentials']}"
+    )

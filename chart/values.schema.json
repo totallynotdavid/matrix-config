@@ -6,7 +6,14 @@
   "properties": {
     "matrix-stack": {
       "type": "object",
-      "required": ["serverName", "elementAdmin", "elementWeb", "matrixAuthenticationService", "synapse", "matrixRTC"]
+      "required": [
+        "serverName",
+        "elementAdmin",
+        "elementWeb",
+        "matrixAuthenticationService",
+        "synapse",
+        "matrixRTC"
+      ]
     }
   }
 }
