@@ -1,2 +1,4 @@
 __pycache__/
 chart/charts/
+.env.*
+!.env.example
