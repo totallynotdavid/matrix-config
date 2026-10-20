@@ -1,6 +1,10 @@
 [tools]
 helm = "4.3.1"
 
+[tasks.fix]
+description = "Format the mise configuration."
+run = "mise fmt"
+
 [tasks.check]
 description = "render and lint the chart with ./element check"
 run = "./element check"
