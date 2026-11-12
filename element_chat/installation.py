@@ -33,23 +33,23 @@ from .support import (
 )
 
 
-K3S_VERSION = "v1.36.2+k3s1"
+K3S_VERSION = "v1.37.2+k3s1"
 TOOLS = {
     "helm": {
-        "version": "v4.2.3",
-        "url": "https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz",
-        "sha256": "e9b88b4ee95b18c706839c28d3a0220e5bc470e9cd9262410c90793c45ff8b7c",
+        "version": "v4.3.1",
+        "url": "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz",
+        "sha256": "0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b",
         "member": "linux-amd64/helm",
     },
     "kubectl": {
-        "version": "v1.36.2",
-        "url": "https://dl.k8s.io/v1.36.2/bin/linux/amd64/kubectl",
-        "sha256": "1e9045ec32bea85da43de85f0065358529ea7c7a152eca78154fba5b58c27d82",
+        "version": "v1.37.2",
+        "url": "https://dl.k8s.io/v1.37.2/bin/linux/amd64/kubectl",
+        "sha256": "c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4",
     },
     "cloudflared": {
-        "version": "2026.7.2",
-        "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.7.2/cloudflared-linux-amd64",
-        "sha256": "ec905ea7b7e327ff8abdde8cb64697a2152de74dbcdbf6aec9db8364eb3886cd",
+        "version": "2026.11.0",
+        "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.11.0/cloudflared-linux-amd64",
+        "sha256": "51f7c68b57ed7269164075d7e789efce5b59355982f06392deeb037d982a51fd",
     },
 }
 PHASES = ("preflight", "tools", "k3s", "tunnel", "application", "organization", "verify")
